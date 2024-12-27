@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="initial-scale=1.0">
+    <title>Bus Seat Booking - Sudeepa Super Express</title>
+    <style>
+        /* Styles for the page */
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f9;
+            padding: 20px;
+        }
+        h1 {
+            color: #333;
+        }
+        .form-container {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            max-width: 500px;
+            margin: auto;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        .form-group label {
+            font-weight: bold;
+        }
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 10px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            margin-top: 5px;
+        }
+        .form-group button {
+            width: 100%;
+            padding: 10px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        .form-group button:hover {
+            background-color: #45a049;
+        }
+        .seat-map {
+            margin-top: 20px;
+            text-align: center;
+        }
+        .seat {
+            display: inline-block;
+            width: 40px;
+            height: 40px;
+            background-color: #ddd;
+            margin: 5px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .selected-seat {
+            background-color: #4CAF50;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Sudeepa Super Express - Seat Booking</h1>
+
+    <div class="form-container">
+        <form id="booking-form">
+            <div class="form-group">
+                <label for="from-location">From:</label>
+                <select id="from-location" name="from-location" required onchange="updateDestinationAndTime()">
+                    <option value="Badulla">Badulla</option>
+                    <option value="Kandy">Kandy</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="to-location">To:</label>
+                <select id="to-location" name="to-location" required>
+                    <!-- Automatically updated based on "From" selection -->
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="travel-date">Select Date:</label>
+                <input type="date" id="travel-date" name="travel-date" required />
+            </div>
+
+            <div class="form-group">
+                <label for="departure-time">Select Departure Time:</label>
+                <select id="departure-time" name="departure-time" required>
+                    <!-- Automatically updated based on "From" selection -->
+                </select>
+            </div>
+
+            <div class="seat-map">
+                <h2>Select Your Seat</h2>
+                <div id="seats-container">
+                    <!-- Seat selection buttons will go here -->
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="name">Name:</label>
+                <input type="text" id="name" name="name" placeholder="Your Name" required>
+            </div>
+
+            <div class="form-group">
+                <label for="phone">Phone Number:</label>
+                <input type="tel" id="phone" name="phone" placeholder="Your Phone Number" pattern="^\d{10}$" required>
+                <small id="phoneError" style="color: red; display: none;">Please enter a valid 10-digit phone number.</small>
+            </div>
+
+            <div class="form-group">
+                <button type="button" id="confirm-booking" onclick="sendSMS()">Confirm Booking</button>
+            </div>
+        </form>
+    </div>
+
+    <script>
+        // Example seat map for seat selection
+        const seats = [
+            ['A1', 'A2', 'A3', 'A4', 'A5'],
+            ['B1', 'B2', 'B3', 'B4', 'B5'],
+            ['C1', 'C2', 'C3', 'C4', 'C5'],
+            ['D1', 'D2', 'D3', 'D4', 'D5']
+        ];
+
+        function renderSeats() {
+            const seatsContainer = document.getElementById('seats-container');
+            seatsContainer.innerHTML = ''; // Clear previous seats
+
+            // Generate seat buttons
+            seats.forEach(row => {
+                row.forEach(seat => {
+                    const seatButton = document.createElement('button');
+                    seatButton.classList.add('seat');
+                    seatButton.innerText = seat;
+                    seatButton.onclick = () => toggleSeatSelection(seatButton);
+                    seatsContainer.appendChild(seatButton);
+                });
+                seatsContainer.appendChild(document.createElement('br')); // New row
+            });
+        }
+
+        function toggleSeatSelection(seatButton) {
+            seatButton.classList.toggle('selected-seat');
+        }
+
+        // Update the "To" location and "Departure Time" based on the "From" selection
+        function updateDestinationAndTime() {
+            const fromLocation = document.getElementById('from-location').value;
+            const toLocation = document.getElementById('to-location');
+            const departureTime = document.getElementById('departure-time');
+            
+            // Update "To" dropdown
+            toLocation.innerHTML = ''; // Clear previous options
+            const option = document.createElement('option');
+            if (fromLocation === 'Badulla') {
+                option.value = 'Kandy';
+                option.innerText = 'Kandy';
+                departureTime.innerHTML = ''; // Clear previous time options
+                const timeOption = document.createElement('option');
+                timeOption.value = '5:00 AM';
+                timeOption.innerText = '5:00 AM (Badulla)';
+                departureTime.appendChild(timeOption); // Set the time for Badulla
+            } else {
+                option.value = 'Badulla';
+                option.innerText = 'Badulla';
+                departureTime.innerHTML = ''; // Clear previous time options
+                const timeOption = document.createElement('option');
+                timeOption.value = '10:10 AM';
+                timeOption.innerText = '10:10 AM (Kandy)';
+                departureTime.appendChild(timeOption); // Set the time for Kandy
+            }
+            toLocation.appendChild(option); // Add the new destination
+        }
+
+        // Function to send SMS
+        function sendSMS() {
+            const fromLocation = document.getElementById('from-location').value;
+            const toLocation = document.getElementById('to-location').value;
+            const travelDate = document.getElementById('travel-date').value;
+            const departureTime = document.getElementById('departure-time').value;
+            const name = document.getElementById('name').value;
+            const phone = document.getElementById('phone').value;
+
+            const selectedSeats = Array.from(document.querySelectorAll('.selected-seat')).map(seat => seat.innerText).join(', ');
+
+            if (selectedSeats.length === 0) {
+                alert('Please select at least one seat.');
+                return;
+            }
+
+            const message = `Booking Details:\nFrom: ${fromLocation}\nTo: ${toLocation}\nDate: ${travelDate}\nTime: ${departureTime}\nSeats: ${selectedSeats}\nName: ${name}\nPhone: ${phone}`;
+
+            // For mobile devices, open the SMS app
+            if (/Mobi|Android/i.test(navigator.userAgent)) {
+                const smsLink = `sms:?body=${encodeURIComponent(message)}`;
+                window.location.href = smsLink;
+            } else {
+                // For desktops, show a message
+                alert('SMS sent to your mobile with the booking details. \n\n' + message);
+            }
+        }
+
+        // Initialize seat map, destination, and departure time
+        renderSeats();
+        updateDestinationAndTime();
+
+        // Ensure that the date cannot be in the past
+        document.addEventListener('DOMContentLoaded', function() {
+            const today = new Date().toISOString().split('T')[0];  // Get today's date in YYYY-MM-DD format
+            document.getElementById('travel-date').setAttribute('min', today);
+        });
+    </script>
+
+</body>
+</html>
